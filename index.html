@@ -136,33 +136,48 @@
 
     /* Media queries para móviles */
     @media (max-width: 768px) {
+
+      /* Texto del logo en la parte superior */
+      #tituloPlanta {
+        position: relative;
+        top: 0;
+        right: 0;
+        transform: none;
+        margin: 10px auto;
+        font-size: 16px;
+        padding: 5px 10px;
+      }
+
+      /* Hotspots sobre la imagen más pequeños */
       .hotspot {
         width: 20px;
         height: 20px;
         font-size: 11px;
       }
 
-      #tituloPlanta {
-        font-size: 16px;
-        padding: 5px 10px;
-        right: 10px;
-      }
-
+      /* Footer más pequeño */
       footer {
         font-size: 10px;
       }
 
+      /* Barra de hotspots 360° debajo de la imagen y centrada */
       #barraInferiorIzquierda {
-        bottom: 20px;
-        left: 10px;
+        position: relative;
+        left: 0;
+        bottom: 0;
+        flex-direction: row;
+        justify-content: center;
+        margin-top: 10px;
+        gap: 10px;
       }
 
       .hotspot-left {
-        width: 120px;
+        width: 100px;
         height: 35px;
         font-size: 12px;
       }
 
+      /* Modal Kuula más pequeño */
       #modalKuula iframe {
         width: 100%;
         height: 80%;
@@ -172,22 +187,22 @@
 </head>
 <body>
 
-<div class="visor" id="visor">
-  <img id="imagenActual" src="Planta.png" alt="Proyecto">
-</div>
-
-<!-- Barra inferior izquierda con hotspots 360° -->
-<div id="barraInferiorIzquierda">
-  <div class="hotspot-left" onclick="abrirKuula('https://kuula.co/share/collection/7DDhY?logo=0&info=1&fs=1&vr=0&sd=1&thumbs=1')">Ejemplo Sala 360°</div>
-  <div class="hotspot-left" onclick="abrirKuula('https://kuula.co/share/collection/7qzC4?logo=0&info=1&fs=1&vr=0&sd=1&autop=10&thumbs=1')">Ejemplo Alcoba 360°</div>
-</div>
-
 <div id="tituloPlanta">
   <img src="logo.png" alt="Logo Empresa" style="width:200px; display:block; margin:0 auto 10px auto;">
   PROYECTO ALBERGUE DEL SOL.<br>
   Casa Tipo 1 .<br>
   50m2<br>
   <span style="font-size:14px; color:#333;">Contacto: arquitectacarrera@gmail.com | +57 315 833 8650</span>
+</div>
+
+<div class="visor" id="visor">
+  <img id="imagenActual" src="Planta.png" alt="Proyecto">
+</div>
+
+<!-- Barra inferior con hotspots 360° -->
+<div id="barraInferiorIzquierda">
+  <div class="hotspot-left" onclick="abrirKuula('https://kuula.co/share/collection/7DDhY?logo=0&info=1&fs=1&vr=0&sd=1&thumbs=1')">Ejemplo Sala 360°</div>
+  <div class="hotspot-left" onclick="abrirKuula('https://kuula.co/share/collection/7qzC4?logo=0&info=1&fs=1&vr=0&sd=1&autop=10&thumbs=1')">Ejemplo Alcoba 360°</div>
 </div>
 
 <footer>
@@ -203,10 +218,8 @@
 <script>
   const visor = document.getElementById("visor");
   const imagenActual = document.getElementById("imagenActual");
-  const titulo = document.getElementById("tituloPlanta");
   const modalKuula = document.getElementById("modalKuula");
   const iframeKuula = document.getElementById("iframeKuula");
-
   let imagenNombreActual = "Planta.png";
 
   const hotspots = [
@@ -232,10 +245,8 @@
         div.onclick = () => cambiarImagen(h.imagen);
         visor.appendChild(div);
       });
-      titulo.style.display = "block";
       imagenActual.onclick = null;
     } else {
-      titulo.style.display = "none";
       imagenActual.onclick = () => cambiarImagen("Planta.png");
     }
   }

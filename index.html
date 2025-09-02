@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Manifest PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8B1E3F">
+
+<!-- Registro del Service Worker -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js")
+        .then(reg => console.log("Service Worker registrado", reg))
+        .catch(err => console.log("Service Worker error", err));
+    });
+  }
+</script>
+
+  <meta charset="utf-8">
+  <title>Proyecto Inmobiliario</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f5f5; }
+
+    /* Visor de imágenes */
+    .visor {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+    }
+    .visor img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+      box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+
+    /* Hotspots normales */
+    .hotspot {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: rgba(139,30,63,0.8);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* Hotspots 360° en parte inferior izquierda */
+    #barraInferiorIzquierda {
+      position: fixed;
+      left: 20px;
+      bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 1000;
+    }
+    .hotspot-left {
+      width: 140px;
+      height: 40px;
+      font-size: 14px;
+      border-radius: 8px;
+      background: rgba(139,30,63,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .hotspot-left:hover {
+      background: rgba(139,30,63,1);
+      transform: scale(1.05);
+    }
+
+    /* Título con logo e info */
+    #tituloPlanta {
+      position: fixed;
+      top: 50%;
+      right: 30px;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.8);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #8B1E3F;
+      display: block;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 10px; 
+      right: 10px;
+      font-size: 12px;
+      color: rgba(0,0,0,0.6);
+    }
+
+    /* Modal para Kuula */
+    #modalKuula {
+      display: none;
+      position: fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    #modalKuula iframe {
+      width: 90%;
+      height: 90%;
+      border: none;
+      border-radius: 10px;
+    }
+    #cerrarModal {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="visor" id="visor">
+  <img id="imagenActual" src="Planta.png" alt="Proyecto">
+</div>
+
+<!-- Barra inferior izquierda con hotspots 360° -->
+<div id="barraInferiorIzquierda">
+  <div class="hotspot-left" onclick="abrirKuula('https://kuula.co/share/collection/7DDhY?logo=0&info=1&fs=1&vr=0&sd=1&thumbs=1')">Ejemplo Sala 360°</div>
+  <div class="hotspot-left" onclick="abrirKuula('https://kuula.co/share/collection/7qzC4?logo=0&info=1&fs=1&vr=0&sd=1&autop=10&thumbs=1')">Ejemplo Alcoba 360°</div>
+</div>
+
+<div id="tituloPlanta">
+  <img src="logo.png" alt="Logo Empresa" style="width:200px; display:block; margin:0 auto 10px auto;">
+  PROYECTO ALBERGUE DEL SOL.<br>
+  Casa Tipo 1 .<br>
+  50m2<br>
+  <span style="font-size:14px; color:#333;">Contacto: arquitectacarrera@gmail.com | +57 315 833 8650</span>
+</div>
+
+<footer>
+  Renders desarrollados por Arquitectas Carrera
+</footer>
+
+<!-- Modal Kuula -->
+<div id="modalKuula">
+  <div id="cerrarModal" onclick="cerrarKuula()">✖</div>
+  <iframe id="iframeKuula" src=""></iframe>
+</div>
+
+<script>
+  const visor = document.getElementById("visor");
+  const imagenActual = document.getElementById("imagenActual");
+  const titulo = document.getElementById("tituloPlanta");
+  const modalKuula = document.getElementById("modalKuula");
+  const iframeKuula = document.getElementById("iframeKuula");
+
+  let imagenNombreActual = "Planta.png";
+
+  const hotspots = [
+    {top: "80%", left: "55%", imagen: "5.png", label: "1"},
+    {top: "60%", left: "52%", imagen: "1.png", label: "2"},
+    {top: "70%", left: "46%", imagen: "2.png", label: "3"},
+    {top: "85%", left: "44%", imagen: "6.png", label: "4"},
+    {top: "53%", left: "45%", imagen: "7.png", label: "5"},
+    {top: "26%", left: "49%", imagen: "9.png", label: "6"},
+    {top: "33%", left: "43%", imagen: "10.png", label: "7"}
+  ];
+
+  function crearHotspots() {
+    document.querySelectorAll(".hotspot").forEach(h => h.remove());
+    if(imagenNombreActual === "Planta.png"){
+      hotspots.forEach((h) => {
+        const div = document.createElement("div");
+        div.className = "hotspot";
+        div.style.top = h.top;
+        div.style.left = h.left;
+        div.innerText = h.label;
+        div.title = h.label;
+        div.onclick = () => cambiarImagen(h.imagen);
+        visor.appendChild(div);
+      });
+      titulo.style.display = "block";
+      imagenActual.onclick = null;
+    } else {
+      titulo.style.display = "none";
+      imagenActual.onclick = () => cambiarImagen("Planta.png");
+    }
+  }
+
+  function cambiarImagen(img){
+    imagenActual.src = img;
+    imagenNombreActual = img;
+    crearHotspots();
+  }
+
+  function abrirKuula(url){
+    iframeKuula.src = url;
+    modalKuula.style.display = "flex";
+  }
+
+  function cerrarKuula(){
+    modalKuula.style.display = "none";
+    iframeKuula.src = "";
+  }
+
+  crearHotspots();
+</script>
+
+</body>
+</html>
